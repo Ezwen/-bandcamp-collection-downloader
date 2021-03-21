@@ -50,7 +50,8 @@ class BandcampAPIConnector constructor(private val bandcampUser: String, private
             val title: String,
             val artist: String,
             val download_type: String,
-            val art_id: String
+            val art_id: String,
+            val band_name: String
     )
 
     private data class ParsedStatDownload(

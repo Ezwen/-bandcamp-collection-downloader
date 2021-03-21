@@ -146,7 +146,9 @@ class BandcampCollectionDownloader(private val args: Args, private val io: IO) {
         // Get data (1)
         var releasetitle = digitalItem.title
         var artist = digitalItem.artist
-        var releaseUTC: ZonedDateTime? = null
+        var bandName = digitalItem.band_name;
+
+        var releaseUTC : ZonedDateTime? = null
         var releaseYear: CharSequence = "0000"
 
         // Skip preorders
@@ -177,11 +179,23 @@ class BandcampCollectionDownloader(private val args: Args, private val io: IO) {
         // Replace invalid chars by similar unicode chars
         releasetitle = Util.replaceInvalidCharsByUnicode(releasetitle)
         artist = Util.replaceInvalidCharsByUnicode(artist)
+        bandName = Util.replaceInvalidCharsByUnicode(bandName)
 
         // Prepare artist and release folder paths
         val downloadFolderPath = Paths.get("${args.pathToDownloadFolder}")
-        val releaseFolderName = "$releaseYear - $releasetitle"
-        var artistFolderPath = downloadFolderPath.resolve(artist)
+
+        var releaseFolderName: String?
+        var artistFolderPath: Path?
+
+        if (!args.useBandName) {
+            artistFolderPath = downloadFolderPath.resolve(artist)
+            releaseFolderName = "$releaseYear - $releasetitle"
+        } else {
+            artistFolderPath = downloadFolderPath.resolve(bandName)
+            releaseFolderName = "$releaseYear - $artist - $releasetitle"
+        }
+
+
         var releaseFolderPath = artistFolderPath.resolve(releaseFolderName)
 
         // If one of the folders already exists as a file, throw an error
