@@ -6,8 +6,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatterBuilder
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoField
 import java.util.*
 import java.util.concurrent.*
@@ -143,6 +146,18 @@ class BandcampCollectionDownloader(private val args: Args, private val io: IO) {
             return
         }
 
+        // Filter by Artist
+        if (args.filterArtist != null && digitalItem.artist != args.filterArtist) {
+            cache.add(saleItemId, "UNKNOWN")
+            return
+        }
+
+        // Filter by Title
+        if (args.filterTitle != null && digitalItem.title != args.filterTitle) {
+            cache.add(saleItemId, "UNKNOWN")
+            return
+        }
+
         // Get data (1)
         var releasetitle = digitalItem.title
         var artist = digitalItem.artist
@@ -165,6 +180,20 @@ class BandcampCollectionDownloader(private val args: Args, private val io: IO) {
         if (releaseUTC != null && releaseUTC.toInstant() > Instant.now()) {
             Util.log("$printableReleaseName is a preorder; skipping.")
             return
+        }
+
+        // Filter by Date
+        if (args.filterDate != null) {
+            try {
+                val filterDate: LocalDate = LocalDate.now();
+                val filterInstant: Instant = filterDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            
+                if (releaseUTC != null && releaseUTC.toInstant().isAfter(filterInstant)) {
+                    return
+                }
+            } catch(e: DateTimeParseException) {
+                Util.log("could not parse filterDate")
+            }
         }
 
         // Get data (2)
